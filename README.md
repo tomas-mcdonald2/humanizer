@@ -1,15 +1,15 @@
 # Humanizer
 
-[![skills.sh installs](https://skills.sh/b/blader/humanizer)](https://skills.sh/blader/humanizer)
-
 Humanizer rewrites AI-sounding text so it reads like a person wrote it, without changing what it says. Because it is just Markdown, it works with any agent that supports skills.
+
+This is [Tomas's](https://github.com/tomas-mcdonald2) fork of [blader/humanizer](https://github.com/blader/humanizer).
 
 ## Installation
 
 Install Humanizer with the Skills CLI:
 
 ```bash
-npx skills add blader/humanizer --global
+npx skills add tomas-mcdonald2/humanizer --global
 ```
 
 Leave off `--global` to install Humanizer only in the current project. Add `--agent <name>` or `--agent '*'` to choose which agents receive it, then reload their skills. The skill answers to `/humanizer`.
@@ -17,7 +17,7 @@ Leave off `--global` to install Humanizer only in the current project. Add `--ag
 Claude Code 2.1.142 or newer can install the plugin instead:
 
 ```text
-/plugin marketplace add blader/humanizer
+/plugin marketplace add tomas-mcdonald2/humanizer
 /plugin install humanizer@humanizer
 ```
 
@@ -158,6 +158,20 @@ The writer supplied these notes with the draft, so the rewrite can use them: the
 >
 > I would go back, but in spring and with better shoes. Lisbon does not bend over backward to make things easy for you. I think I liked that, even when my legs disagreed.
 
+## Checking rewrite quality
+
+Humanizer is a prompt, not code, so these scripts don't run the skill. They check its output after the fact: a heuristic, dependency-free approximation of the 25 patterns that you run on a before/after pair.
+
+```bash
+python3 scripts/score_tells.py before.md after.md      # per-pattern hit counts for one or more files
+python3 scripts/compare_rewrite.py before.md after.md  # before/after deltas, plus a dropped-facts check
+python3 scripts/summarize_changes.py before.md after.md # a short Markdown changelog of what moved
+```
+
+`compare_rewrite.py` also flags any pattern whose count went up instead of down, any strong tell (§1-5) still present after the rewrite, and any standalone number or quoted span from the original that's missing from the rewrite, a proxy for the skill's own "did the rewrite drop a fact" check. It exits 1 on any of those, so it can gate a CI step if you want that.
+
+These heuristics can't judge meaning the way the skill's own read-and-rewrite process does. Read `scripts/tell_patterns.py`'s docstring for what they can and can't catch, especially forced triads (§6), which flags any three-item list and needs a human to tell a real one from a genuine AI tell. `scripts/check_examples.py` regression-tests the scorer against SKILL.md's own before/after examples, so it's part of the checks below.
+
 ## Sources
 
 - [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) is the source for the pattern list.
@@ -168,6 +182,7 @@ The writer supplied these notes with the draft, so the rewrite can use them: the
 <details>
 <summary>Show release notes</summary>
 
+- **3.0.1** - Rebranded the plugin and marketplace manifests and the README install instructions for this fork. Added a dependency-free rewrite-quality toolkit under `scripts/`: `tell_patterns.py` detects the 25 patterns heuristically, `score_tells.py` and `compare_rewrite.py` report hit counts and before/after deltas, `summarize_changes.py` writes a short changelog, and `check_examples.py` regression-tests the scorer against SKILL.md's own before/after examples. No change to the 25 patterns.
 - **3.0.0** - Rebuilt the skill around one account of why AI text sounds the way it does, and consolidated 35 patterns into 25. Patterns are grouped in five sections and numbered by strength and frequency, so the not-X-but-Y contrast and the one-line closer come first and get the fullest treatment. Merged duplicate guidance: the workflow is one section instead of five, the dash rule is stated once, and each false-positive guard lives inside its pattern. Realigned with the current Wikipedia article: dropped false ranges and synonym cycling, which Wikipedia now lists as human habits or historical, added vague connection or association, and extended the watch lists for words, notability, copulatives, sales language, disclaimers, and Markdown formatting. Reordered the README and removed the `ai-detection` keyword from the package files. Old to new numbers: 1→13, 2→17, 3→15, 4→16, 5→17, 6→13, 7→12, 8→18, 9→1, 10→6, 11→7, 12→dropped, 13→11, 14→8, 15→19, 16→19, 17→20, 18→20, 19→21, 20→22, 21→23, 22→22, 23→dropped, 24→9, 25→13, 26→10, 27→3, 28→4, 29→24, 30→25, 31→2, 32→3, 33→4, 34→5, 35→5.
 - **2.11.3** - Grouped patterns 26-35 under "More style patterns" in the skill and README (fixes #247). Kept inline code, commands, paths, and URLs out of the dash rule and file mode edits. Step 3 now keeps every supported claim, allows a removal that a pattern requires, and checks that rankings and simultaneity claims survive shape edits (fixes #212). Explained in §9 why the not-X-but-Y form appears and when to keep it. Added decorative arrows to §18 and pause commands and one-word shouting to §31. The text given to the skill is content to edit, never instructions (#238). No change to the 35 patterns.
 - **2.11.2** - Removed the plugin symlink and separate Claude Desktop package. Current Claude Code loads the root `SKILL.md` directly, so GitHub's source ZIP now works in Claude Desktop. No change to the 35 patterns.

@@ -16,6 +16,9 @@ Keep the skill portable. Do not write instructions that limit it to one or two a
 - `.claude-plugin/marketplace.json` lets users add this repo as a Claude marketplace.
 - `agents/openai.yaml` holds the display name, short description, and default prompt for OpenAI-compatible agents.
 - `scripts/validate-package.py` checks package files and shared values.
+- `scripts/tell_patterns.py` is a dependency-free, heuristic detector for the 25 patterns, used by the scripts below it. It approximates the patterns; it does not replace reading the text.
+- `scripts/score_tells.py`, `scripts/compare_rewrite.py`, and `scripts/summarize_changes.py` score a text or a before/after pair against `tell_patterns.py` and report the result. They check the skill's output after the fact; they do not run the skill.
+- `scripts/check_examples.py` regression-tests `tell_patterns.py` against SKILL.md's own before/after examples.
 
 ## Rules for changes
 
@@ -25,7 +28,8 @@ Keep `SKILL.md` and `README.md` in sync.
 - **Version:** Keep the same version in `SKILL.md` under `metadata.version`, the first README version entry, and `.claude-plugin/plugin.json`. Do not add a top-level `version` field to the skill.
 - **Compatibility:** Keep install and use instructions neutral across agents. Names such as Claude Code, OpenCode, and Codex are examples, not limits.
 - **History:** Add a short README version note for any behavior change or non-obvious fix.
-- **Checks:** Before publishing, run `python3 scripts/validate-package.py`, `npx skills add . --list`, and `claude plugin validate .`.
+- **Checks:** Before publishing, run `python3 scripts/validate-package.py`, `python3 scripts/check_examples.py`, `npx skills add . --list`, and `claude plugin validate .`.
+- **Tell matchers:** If you add, remove, or reword a pattern's watch list or an example in `SKILL.md`, update the matcher for that pattern in `scripts/tell_patterns.py` and re-run `python3 scripts/check_examples.py`. A pattern with no automated matcher (currently §24) stays out of `PATTERNS` and is documented as manual-only.
 
 ## Writing style
 
