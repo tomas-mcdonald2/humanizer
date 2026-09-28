@@ -1,0 +1,1 @@
+Context: this is a reply in a Slack thread. The manager (Dan) asked the team: "Can we still ship the dashboard on Friday or do we need to slip?" Everyone in the thread already knows the dashboard depends on the new events API, and that the events API had an outage on Monday.

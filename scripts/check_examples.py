@@ -2,7 +2,7 @@
 """Regression-test the tell scorer against SKILL.md's own before/after pairs.
 
 SKILL.md embeds one or more before/after blockquote pairs under most of its
-25 patterns. This script extracts them and checks that, for each pattern
+26 patterns. This script extracts them and checks that, for each pattern
 with an automated matcher, the "after" text scores no higher than the
 "before" text on that pattern. That keeps `tell_patterns.py` honest: if a
 future edit to the matchers stops catching a tell SKILL.md itself
@@ -10,7 +10,7 @@ demonstrates, this fails loudly.
 
 It is intentionally not a claim that the scorer detects every pattern
 perfectly, only that it moves in the right direction on the skill's own
-examples. A pattern with no automated matcher (currently #24) is reported
+examples. A pattern with no automated matcher (currently #24 and #26) is reported
 as skipped, not failed.
 """
 
