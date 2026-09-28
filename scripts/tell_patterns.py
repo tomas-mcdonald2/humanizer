@@ -115,7 +115,9 @@ def _one_line_closers(text: str) -> list[str]:
         m.group(0)
         for m in re.finditer(r"\b(?:\w+\.\s+){2,}\w+\.", text)
     )
-    hits.extend(m.group(0) for m in re.finditer(r"\b[A-Z]{4,}\b", text))
+    # One word in ALL CAPS. Skip an acronym followed by a number, such as
+    # "HTTP 429" or "ISO 8601".
+    hits.extend(m.group(0) for m in re.finditer(r"\b[A-Z]{4,}\b(?!\s*\d)", text))
     # A row of short fragments, e.g. "No aesthetic prior. No nostalgia."
     hits.extend(
         m.group(0)
