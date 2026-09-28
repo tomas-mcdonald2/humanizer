@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "humanizer",
   "description": "Rewrite AI-sounding text so it reads like the writer without changing what it says.",
   "version": "3.1.1",
@@ -10,6 +9,5 @@
   "homepage": "https://github.com/tomas-mcdonald2/humanizer",
   "repository": "https://github.com/tomas-mcdonald2/humanizer",
   "license": "MIT",
-  "keywords": ["writing", "editing", "humanize", "prose", "style"],
-  "skills": ["./"]
+  "keywords": ["writing", "editing", "humanize", "prose", "style"]
 }

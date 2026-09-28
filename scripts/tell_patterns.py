@@ -1,6 +1,6 @@
 """Detect Humanizer's numbered AI-writing tells in a block of text.
 
-This is a heuristic, dependency-free approximation of the 25 patterns in
+This is a heuristic, dependency-free approximation of the 26 patterns in
 `SKILL.md`. It cannot judge meaning the way the skill's own read-and-rewrite
 process does, so it under- and over-matches in places. Use it to compare a
 before/after pair, not to grade a single text in isolation.
@@ -14,8 +14,9 @@ Each pattern has a `tier` that mirrors SKILL.md's own ranking:
 - "moderate": every other automated pattern.
 
 Pattern 24 ("a heading repeated in the first sentence") needs structural
-context this module does not model, so it is not included here. Treat it as
-manual-only.
+context this module does not model, and pattern 26 ("re-explaining what the
+reader knows") needs the conversation around a reply. Neither is included
+here. Treat both as manual-only.
 """
 
 from __future__ import annotations
@@ -102,7 +103,13 @@ def _not_x_but_y(text: str) -> list[str]:
 
 def _one_line_closers(text: str) -> list[str]:
     hits = _phrase_matcher(
-        ["that is the real win", "read that again", "let that sink in"]
+        [
+            "that is the real win", "that distinction matters",
+            "read that again", "let that sink in",
+            # A sentence that names what an example just showed.
+            "this shows the importance of", "the message was clear",
+            "it was a lesson in",
+        ]
     )(text)
     hits.extend(
         m.group(0)
@@ -202,15 +209,28 @@ def _curly_quotes(text: str) -> list[str]:
     return [m.group(0) for m in re.finditer(r"[“”‘’]", text)]
 
 
+# Compound modifiers that should lose their hyphen after the noun. Words the
+# dictionary always hyphenates (third-party, cross-functional) are not tells.
 HYPHENATED_PAIRS = [
-    "third-party", "cross-functional", "client-facing", "data-driven",
-    "decision-making", "well-known", "high-quality", "real-time",
-    "long-term", "end-to-end",
+    "high-quality", "well-known", "well-documented", "long-term",
+    "real-time", "client-facing",
 ]
+
+
+def _hyphenated_after_noun(text: str) -> list[str]:
+    # Fire only after a linking verb, where the pair follows its noun
+    # ("the report is high-quality"), not before one ("a high-quality report").
+    pairs = "|".join(re.escape(p) for p in HYPHENATED_PAIRS)
+    rx = re.compile(
+        rf"\b(?:is|are|was|were|be|been|being|seems?|looks?|feels?|stays?|remains?)\s+"
+        rf"(?:very\s+|quite\s+|really\s+)?(?:{pairs})\b(?!\s+(?!and\b|or\b|but\b)[a-z])",
+        re.IGNORECASE,
+    )
+    return [m.group(0) for m in rx.finditer(text)]
 
 OVERUSED_AI_WORDS = [
     "actually", "additionally", "align with", "bolstered", "crucial",
-    "deep dive", "delve", "emphasizing", "enduring", "enhance", "fostering",
+    "deep dive", "delve", "enduring", "enhance",
     "garner", "gating", "highlight", "interplay", "intricate", "intricacies",
     "key", "landscape", "meticulous", "meticulously", "pivotal", "quietly",
     "robust", "showcase", "tapestry", "testament", "underscore", "valuable",
@@ -258,7 +278,7 @@ PATTERNS: list[Pattern] = [
             "might arguably", "in some cases it may", "this is an inference",
         ]),
     ),
-    Pattern(10, "Hyphenated pairs everywhere", "weak_alone", _phrase_matcher(HYPHENATED_PAIRS)),
+    Pattern(10, "Hyphenated pairs everywhere", "weak_alone", _hyphenated_after_noun),
     Pattern(11, "Passive voice and missing subjects", "weak_alone", _passive_voice),
     Pattern(12, "Overused AI words", "moderate", _phrase_matcher(OVERUSED_AI_WORDS)),
     Pattern(
@@ -291,8 +311,7 @@ PATTERNS: list[Pattern] = [
     Pattern(
         16, "Sales language", "moderate",
         _phrase_matcher([
-            "boasts", "vibrant", "rich cultural", "profound", "enhancing",
-            "exemplifies", "commitment to", "natural beauty", "nestled",
+            "rich cultural", "profound", "exemplifies", "commitment to", "natural beauty", "nestled",
             "in the heart of", "groundbreaking", "renowned", "featuring",
             "diverse array", "breathtaking", "must-visit", "stunning",
         ]),
@@ -338,11 +357,19 @@ PATTERNS: list[Pattern] = [
         ]),
     ),
     Pattern(
-        25, "Writing about the previous version", "moderate",
+        25, "Writing about the document instead of its subject", "moderate",
         _phrase_matcher([
+            # What the text replaced.
             "was added to replace", "the previous approach of",
             "previously used", "used to require", "in the old version",
             "the old way of", "this replaces the former",
+            # How it was assembled or sourced.
+            "generated from", "compiled from", "are drawn from",
+            "is drawn from", "flagged rather than guessed",
+            "we could not confirm",
+            # A layout the reader can already see.
+            "the table below compares", "the table below shows",
+            "this section is organized by", "the figures below",
         ]),
     ),
 ]

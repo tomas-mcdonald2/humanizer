@@ -10,26 +10,31 @@ Keep the skill portable. Do not write instructions that limit it to one or two a
 
 ## Key files
 
-- `SKILL.md` is the source of truth and the repo's only skill file. It contains portable YAML metadata, an account of why AI text sounds the way it does, and numbered patterns grouped in five sections and ordered by strength and frequency.
-- `README.md` explains installation, use, patterns, and version history.
+- `SKILL.md` is the source of truth and the repo's only skill file. It contains portable YAML metadata, an account of why AI text sounds the way it does, and numbered patterns grouped in six sections and ordered by strength and frequency.
+- `README.md` explains installation, use, and patterns.
+- `CHANGELOG.md` holds the release notes, newest first. Old notes keep the pattern numbers their release used.
 - `.claude-plugin/plugin.json` describes the Claude plugin and points its skill loader at the root `SKILL.md`.
 - `.claude-plugin/marketplace.json` lets users add this repo as a Claude marketplace.
+- `.cursor-plugin/plugin.json` describes the Cursor plugin. Omit a `skills` path so Cursor loads the root `SKILL.md`.
 - `agents/openai.yaml` holds the display name, short description, and default prompt for OpenAI-compatible agents.
 - `scripts/validate-package.py` checks package files and shared values.
-- `scripts/tell_patterns.py` is a dependency-free, heuristic detector for the 25 patterns, used by the scripts below it. It approximates the patterns; it does not replace reading the text.
+- `scripts/tell_patterns.py` is a dependency-free, heuristic detector for the 26 patterns, used by the scripts below it. It approximates the patterns; it does not replace reading the text.
 - `scripts/score_tells.py`, `scripts/compare_rewrite.py`, and `scripts/summarize_changes.py` score a text or a before/after pair against `tell_patterns.py` and report the result. They check the skill's output after the fact; they do not run the skill.
 - `scripts/check_examples.py` regression-tests `tell_patterns.py` against SKILL.md's own before/after examples.
+- `scripts/run_corpus.py` scores saved rewrites of the drafts in `tests/rewrite-corpus/`, so two skill versions can be compared. `tests/README.md` explains the steps.
 
 ## Rules for changes
 
 Keep `SKILL.md` and `README.md` in sync.
 
-- **Patterns:** Patterns are numbered from 1 without gaps, strongest and most frequent first. A new tell earns a pattern only when no existing pattern already implies it; prefer folding it into an existing pattern. If you add, remove, or renumber a pattern, update the README tables, the README section title, and every §reference. The validator derives the count from the headings.
-- **Version:** Keep the same version in `SKILL.md` under `metadata.version`, the first README version entry, and `.claude-plugin/plugin.json`. Do not add a top-level `version` field to the skill.
-- **Compatibility:** Keep install and use instructions neutral across agents. Names such as Claude Code, OpenCode, and Codex are examples, not limits.
-- **History:** Add a short README version note for any behavior change or non-obvious fix.
+- **Patterns:** Patterns are numbered from 1 without gaps, strongest and most frequent first. A new tell earns a pattern only when no existing pattern already implies it; prefer folding it into an existing pattern. If you add, remove, or renumber a pattern, update the README tables, the README section title, and every §reference. The validator derives the count from the headings and checks that README pattern names match them.
+- **Version:** Keep the same version in `SKILL.md` under `metadata.version`, the first `CHANGELOG.md` heading, `.claude-plugin/plugin.json`, and `.cursor-plugin/plugin.json`. Do not add a top-level `version` field to the skill.
+- **Compatibility:** Keep install and use instructions neutral across agents. Names such as Claude Code, Cursor, OpenCode, and Codex are examples, not limits.
+- **Description:** The plugin manifests use the first sentence of the `SKILL.md` description.
+- **Length:** Every word of `SKILL.md` is read on each use. The validator caps it at 5,500 words; a change that adds words should earn them.
+- **History:** Add a short `CHANGELOG.md` note for any behavior change or non-obvious fix.
 - **Checks:** Before publishing, run `python3 scripts/validate-package.py`, `python3 scripts/check_examples.py`, `npx skills add . --list`, and `claude plugin validate .`.
-- **Tell matchers:** If you add, remove, or reword a pattern's watch list or an example in `SKILL.md`, update the matcher for that pattern in `scripts/tell_patterns.py` and re-run `python3 scripts/check_examples.py`. A pattern with no automated matcher (currently §24) stays out of `PATTERNS` and is documented as manual-only.
+- **Tell matchers:** If you add, remove, or reword a pattern's watch list or an example in `SKILL.md`, update the matcher for that pattern in `scripts/tell_patterns.py` and re-run `python3 scripts/check_examples.py`. A pattern with no automated matcher (currently §24 and §26) stays out of `PATTERNS` and is documented as manual-only.
 
 ## Writing style
 

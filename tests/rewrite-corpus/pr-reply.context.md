@@ -1,0 +1,1 @@
+Context: this is a reply in a GitHub pull request review thread. The reviewer (Priya) wrote: "This fixes the flaky test by adding a retry, but isn't the real problem that the fixture shares a temp directory across workers?" The author and Priya both know the test suite, the fixture, and the history of the flake.
